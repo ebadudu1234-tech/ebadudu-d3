@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EBADUDU — Zihe Wang</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Silkscreen&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-page="home" class="is-home">
+<header class="top" id="top"></header>
+
+<!-- home: a toy box. Every work's small object falls in, bumps the others, and can be picked up
+     and thrown; a click (without dragging) opens that work. Not scrolling: one screen. -->
+<main class="box" id="box">
+  <h1 class="wordmark" id="wordmark" aria-label="EBADUDU">EBADUDU</h1>
+  <p class="sticker warning retro">WARNING: I RUN ON TOY ENERGY</p>
+  <div class="toys" id="toys"></div>
+  <div class="box-tools">
+    <p class="px box-hint">DRAG · THROW · CLICK A TOY TO OPEN IT</p>
+    <button class="btn" id="shake" type="button">SHAKE THE BOX ↯</button>
+  </div>
+</main>
+
+<!-- begin: a capsule-toy machine. The counter runs to 100, the capsule wobbles and pops,
+     and the toys drop into the box. Once per visit; click or any key skips it. -->
+<div class="intro" id="intro" aria-hidden="true">
+  <button class="px skip" id="skip" type="button">SKIP INTRO →</button>
+  <div class="capsule" id="capsule"><span class="cap-top"></span><span class="cap-bottom"></span></div>
+  <p class="retro intro-count"><span id="count">0</span>% TOY ENERGY</p>
+</div>
+
+<!-- shared on every page: the lid that closes over the box between pages, the yellow name-tag
+     cursor, and the frog guide (all driven by main.js) -->
+<div class="lid" id="lid" aria-hidden="true"><span class="lid-word">EBADUDU</span></div>
+<div class="tag-cursor" id="tag-cursor" aria-hidden="true"></div>
+<aside class="frog" id="frog" aria-hidden="true"><p class="bubble" id="bubble"></p><img src="assets/frog.png" alt=""></aside>
+
+<script src="media.js"></script>
+<script src="data.js"></script>
+<script src="main.js"></script>
+</body>
+</html>

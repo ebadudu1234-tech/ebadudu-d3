@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About Me — EBADUDU</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Silkscreen&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-page="about">
+<header class="top" id="top"></header>
+
+<!-- About Me, version 1 ("Warning: I Run on Toy Energy"). Every sentence is the statement's own,
+     word for word, set by importance: what I want from design large (with small toys sitting
+     inside the sentences, as YanXin Zhang does), the facts behind it small on three sticker
+     cards, then the promise. No links into the works; the email is the only link. -->
+<main class="page about">
+  <div class="about-head">
+    <h1 class="big">About Me</h1>
+    <p class="sticker warning retro">WARNING: I RUN ON TOY ENERGY</p>
+    <p class="px about-name">ZIHE WANG</p>
+  </div>
+
+  <p class="px label">_WHAT I WANT FROM DESIGN</p>
+  <p class="about-big">A good toy does not need a manual to make someone smile. <img class="inline-toy" src="assets/trinkets/550-cafe.png" alt=""> It speaks without a word. That is what I want from design. I like to make <mark>overwhelming things feel less overwhelming</mark>, and let them feel like play. <img class="inline-toy" src="assets/trinkets/code-for-fun.png" alt=""></p>
+
+  <div class="about-cards">
+    <article class="card-sticker" style="--tilt:-1.5deg">
+      <img class="card-toy" src="assets/trinkets/sonar.png" alt="">
+      <p class="px label">_WHERE IT STARTED</p>
+      <p>My shelves have always been full of toys. They have never been just toys to me. They are my friends, and every time I look at them, they give me a special, happy energy. That energy led me to graphic design, and then to games.</p>
+    </article>
+    <article class="card-sticker" style="--tilt:1deg">
+      <img class="card-toy" src="assets/trinkets/planting-pen.png" alt="">
+      <p class="px label">_HOW I MAKE</p>
+      <p>When I could not find the part I wanted, I designed it myself and built it with a 3D printer. When I start a project, I always think about how to turn it into something real, and I keep watching new design technology to find better ways to do it.</p>
+    </article>
+    <article class="card-sticker" style="--tilt:-.8deg">
+      <img class="card-toy" src="assets/trinkets/allodox.png" alt="">
+      <p class="px label">_HOW I LEAD</p>
+      <p>For my graduation project, I built a game and led a small team for the first time: two programmers, and I made all the art. I gave everyone the same tasks and the same time, but everyone has different skills, so it did not work well. Now I try to see what each person is good at, and I lead with more encouragement.</p>
+    </article>
+  </div>
+
+  <div class="about-end">
+    <p class="about-lead">My toys give me happy energy, and I want my work to give people the same energy.</p>
+    <p class="about-closing">I hope everything I design earns a place on someone's shelf.</p>
+    <a class="btn btn-yellow" href="mailto:ebadudu1234@gmail.com">GET IN TOUCH · ebadudu1234@gmail.com</a>
+  </div>
+</main>
+<!-- shared on every page: the lid that closes over the box between pages, the yellow name-tag
+     cursor, and the frog guide (all driven by main.js) -->
+<div class="lid" id="lid" aria-hidden="true"><span class="lid-word">EBADUDU</span></div>
+<div class="tag-cursor" id="tag-cursor" aria-hidden="true"></div>
+<aside class="frog" id="frog" aria-hidden="true"><p class="bubble" id="bubble"></p><img src="assets/frog.png" alt=""></aside>
+
+<script src="media.js"></script>
+<script src="data.js"></script>
+<script src="main.js"></script>
+</body>
+</html>
