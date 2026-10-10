@@ -12,14 +12,14 @@
 <body data-page="home" class="is-home">
 <header class="top" id="top"></header>
 
-<!-- home: a toy box. Every work's small object falls in, bumps the others, and can be picked up
-     and thrown; a click (without dragging) opens that work. Not scrolling: one screen. -->
+<!-- home: a toy box, for play only. Every work's small object falls in, bumps the others, and can be picked up
+     and thrown (physics by Matter.js); nothing here leads anywhere. Not scrolling: one screen. -->
 <main class="box" id="box">
   <h1 class="wordmark" id="wordmark" aria-label="EBADUDU">EBADUDU</h1>
   <p class="sticker warning retro">WARNING: I RUN ON TOY ENERGY</p>
   <div class="toys" id="toys"></div>
   <div class="box-tools">
-    <p class="px box-hint">DRAG · THROW · CLICK A TOY TO OPEN IT</p>
+    <p class="px box-hint">GRAB · THROW · STACK</p>
     <button class="btn" id="shake" type="button">SHAKE THE BOX ↯</button>
   </div>
 </main>
@@ -38,6 +38,7 @@
 <div class="tag-cursor" id="tag-cursor" aria-hidden="true"></div>
 <aside class="frog" id="frog" aria-hidden="true"><p class="bubble" id="bubble"></p><img src="assets/frog.png" alt=""></aside>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
 <script src="media.js"></script>
 <script src="data.js"></script>
 <script src="main.js"></script>

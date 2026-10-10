@@ -114,7 +114,7 @@ function setupTagCursor(el) {
 
 /* ---------- the frog: a guide in the corner with a line for each page (Mr. Panda) ---------- */
 const FROG_LINES = {
-  home: ['Hi! Drag the toys around.', 'Click a toy to open its work.', 'Too tidy? Shake the box!'],
+  home: ['Hi! Grab a toy and throw it.', 'Try stacking them up.', 'Too tidy? Shake the box!'],
   work: ['Pick a word to filter the shelf.', 'Want a list? Try INDEX.', 'Touch a toy, it jumps!'],
   project: ['Scroll down for the whole story.', 'The next toy is at the bottom.'],
   about: ['This is Zihe. Say hi!', 'The email is at the bottom.'],
@@ -136,193 +136,198 @@ function setupFrog(frog, delay = 900) {
   frog.querySelector('img').dataset.tag = 'RIBBIT!';
 }
 
-/* ============ Home: the toy box ============ */
+/* ============ Home: the toy box ============
+   Physics by Matter.js (rigid bodies, friction, stacking, sleeping). Each toy's collision shape
+   is the convex outline traced from its own picture (its opaque pixels), so toys touch where
+   they look like they touch, rest on each other and stop. Toys are only for play here: they
+   can be picked up, thrown and shaken, and do not lead anywhere. */
 function setupBox(box) {
-  // the big wordmark behind the toys
   const mark = box.querySelector('#wordmark');
   mark.innerHTML = mixWord('EBADUDU');
-
   const layer = box.querySelector('#toys');
   const rand = seeded('toy-box');
-  const bodies = [];
-  let W = 0, H = 0, scale = 1;
-  const measure = () => {
-    W = box.clientWidth;
-    H = box.clientHeight;
-    scale = Math.max(0.55, Math.min(1, Math.min(W / 1440, H / 900)));
-  };
-  measure();
+  const M = window.Matter;
 
-  // every work drops in one toy: the small object made from it
-  ORDER.forEach((p) => {
-    const img = new Image();
-    img.className = 'toy';
-    img.alt = p.title;
-    img.draggable = false;
-    const b = { p, img, x: 0, y: 0, vx: 0, vy: 0, a: 0, va: 0, w: 0, h: 0, r: 0, ready: false, held: false, base: 105 + rand() * 55 };
-    img.onload = () => {
-      const k = (b.base * scale) / Math.max(img.naturalWidth, img.naturalHeight);
-      b.w = img.naturalWidth * k;
-      b.h = img.naturalHeight * k;
-      b.r = Math.max(b.w, b.h) * 0.42;
-      img.style.width = `${b.w}px`;
-      b.ready = true;
-    };
-    img.src = toyOf(p);
-    img.style.visibility = 'hidden';
-    layer.append(img);
-    bodies.push(b);
-  });
-  const resize = () => {
-    measure();
-    bodies.forEach((b) => {
-      if (!b.ready) return;
-      const k = (b.base * scale) / Math.max(b.img.naturalWidth, b.img.naturalHeight);
-      b.w = b.img.naturalWidth * k; b.h = b.img.naturalHeight * k; b.r = Math.max(b.w, b.h) * 0.42;
-      b.img.style.width = `${b.w}px`;
-      b.x = Math.min(Math.max(b.x, b.r), W - b.r);
-    });
-  };
-  addEventListener('resize', resize);
+  let W = box.clientWidth, H = box.clientHeight;
+  const unit = () => Math.max(0.55, Math.min(1, Math.min(W / 1440, H / 900)));
 
-  // drop them in from above, a little apart in time
-  let running = false;
-  const drop = () => {
-    bodies.forEach((b, i) => {
-      b.x = W * (0.08 + rand() * 0.84);
-      b.y = -120 - i * 70 - rand() * 200;
-      b.vx = (rand() - 0.5) * 300;
-      b.vy = 0;
-      b.va = (rand() - 0.5) * 300;
-      b.img.style.visibility = '';
-    });
-    running = true;
-  };
-
-  // physics: gravity, bounces off the floor and walls, toys push each other apart
-  const G = 2200, BOUNCE = 0.38;
-  const step = (dt) => {
-    bodies.forEach((b) => {
-      if (!b.ready || b.held) return;
-      b.vy += G * dt;
-      b.x += b.vx * dt;
-      b.y += b.vy * dt;
-      b.a += b.va * dt;
-      b.va *= 0.995;
-      if (b.x < b.r) { b.x = b.r; b.vx = Math.abs(b.vx) * BOUNCE; }
-      if (b.x > W - b.r) { b.x = W - b.r; b.vx = -Math.abs(b.vx) * BOUNCE; }
-      if (b.y > H - b.r) {
-        b.y = H - b.r;
-        b.vy = Math.abs(b.vy) < 60 ? 0 : -Math.abs(b.vy) * BOUNCE;
-        b.vx *= 0.9;
-        b.va = (b.vx / b.r) * (180 / Math.PI);  // rolls along the floor
-      }
-    });
-    for (let i = 0; i < bodies.length; i++) {
-      const A = bodies[i];
-      if (!A.ready) continue;
-      for (let j = i + 1; j < bodies.length; j++) {
-        const B = bodies[j];
-        if (!B.ready) continue;
-        const dx = B.x - A.x, dy = B.y - A.y;
-        const d = Math.hypot(dx, dy) || 0.01, min = A.r + B.r;
-        if (d >= min) continue;
-        const nx = dx / d, ny = dy / d, push = min - d;
-        // a held toy does not move: it pushes the other one the whole way
-        const wa = A.held ? 0 : B.held ? 1 : 0.5, wb = 1 - wa;
-        A.x -= nx * push * wa; A.y -= ny * push * wa;
-        B.x += nx * push * wb; B.y += ny * push * wb;
-        const rel = (B.vx - A.vx) * nx + (B.vy - A.vy) * ny;
-        if (rel < 0) {
-          const imp = -(1 + 0.3) * rel;
-          if (!A.held) { A.vx -= imp * nx * wa; A.vy -= imp * ny * wa; A.va -= imp * 0.2; }
-          if (!B.held) { B.vx += imp * nx * wb; B.vy += imp * ny * wb; B.va += imp * 0.2; }
-        }
+  // the outline of a picture: the convex hull of its opaque pixels, in px around its centre
+  // (a picture without transparency comes back as its rectangle)
+  const outline = (img, w, h) => {
+    const S = 72, k = S / Math.max(img.naturalWidth, img.naturalHeight);
+    const cw = Math.max(2, Math.round(img.naturalWidth * k)), ch = Math.max(2, Math.round(img.naturalHeight * k));
+    const c = document.createElement('canvas');
+    c.width = cw;
+    c.height = ch;
+    const g = c.getContext('2d', { willReadFrequently: true });
+    g.drawImage(img, 0, 0, cw, ch);
+    let data = null;
+    try { data = g.getImageData(0, 0, cw, ch).data; } catch (e) { data = null; }
+    const pts = [];
+    if (data) {
+      for (let y = 0; y < ch; y++) {
+        // the leftmost and rightmost solid pixel of each row is enough for a convex hull
+        let a = -1, b = -1;
+        for (let x = 0; x < cw; x++) if (data[(y * cw + x) * 4 + 3] > 80) { if (a < 0) a = x; b = x; }
+        if (a >= 0) pts.push([a, y], [b + 1, y], [a, y + 1], [b + 1, y + 1]);
       }
     }
+    if (pts.length < 3) return [{ x: -w / 2, y: -h / 2 }, { x: w / 2, y: -h / 2 }, { x: w / 2, y: h / 2 }, { x: -w / 2, y: h / 2 }];
+    // monotone-chain convex hull
+    pts.sort((p, q) => p[0] - q[0] || p[1] - q[1]);
+    const cross = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
+    const lower = [], upper = [];
+    pts.forEach((p) => {
+      while (lower.length > 1 && cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0) lower.pop();
+      lower.push(p);
+    });
+    [...pts].reverse().forEach((p) => {
+      while (upper.length > 1 && cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0) upper.pop();
+      upper.push(p);
+    });
+    const hull = lower.slice(0, -1).concat(upper.slice(0, -1));
+    return hull.map(([x, y]) => ({ x: (x / cw - 0.5) * w, y: (y / ch - 0.5) * h }));
   };
-  const draw = () => {
-    bodies.forEach((b) => {
-      if (!b.ready) return;
-      b.img.style.transform = `translate(${(b.x - b.w / 2).toFixed(1)}px, ${(b.y - b.h / 2).toFixed(1)}px) rotate(${b.a.toFixed(1)}deg)`;
+
+  // the toys: every work's small object
+  const toys = ORDER.map((p) => {
+    const img = new Image();
+    img.className = 'toy';
+    img.alt = '';
+    img.draggable = false;
+    img.style.visibility = 'hidden';
+    img.src = toyOf(p);
+    layer.append(img);
+    return { p, img, base: 105 + rand() * 55, body: null, off: { x: 0, y: 0 }, w: 0, h: 0 };
+  });
+  const loaded = Promise.all(toys.map((t) => (t.img.complete
+    ? Promise.resolve()
+    : new Promise((r) => { t.img.onload = r; t.img.onerror = r; }))));
+  const sizeOf = (t) => {
+    const k = (t.base * unit()) / Math.max(t.img.naturalWidth || 1, t.img.naturalHeight || 1);
+    t.w = (t.img.naturalWidth || 100) * k;
+    t.h = (t.img.naturalHeight || 100) * k;
+    t.img.style.width = `${t.w}px`;
+  };
+
+  // no physics library (offline): the toys simply sit along the floor
+  if (!M) {
+    return async () => {
+      await loaded;
+      toys.forEach((t, i) => {
+        sizeOf(t);
+        t.img.style.transform = `translate(${(i / toys.length) * (W - t.w)}px, ${H - t.h - 10}px)`;
+        t.img.style.visibility = '';
+      });
+    };
+  }
+
+  const { Engine, Bodies, Body, Composite, Mouse, MouseConstraint, Query, Sleeping, Vertices, Events } = M;
+  const engine = Engine.create({ enableSleeping: true });
+  engine.gravity.y = 1.15;
+  engine.positionIterations = 10;
+  engine.velocityIterations = 8;
+
+  // the box: a floor and two walls, and a high lid so nothing is thrown out for good
+  const T = 400;
+  const walls = {
+    floor: Bodies.rectangle(W / 2, H + T / 2, W * 4, T, { isStatic: true }),
+    left: Bodies.rectangle(-T / 2, H / 2 - 2000, T, H + 6000, { isStatic: true }),
+    right: Bodies.rectangle(W + T / 2, H / 2 - 2000, T, H + 6000, { isStatic: true }),
+    lid: Bodies.rectangle(W / 2, -3000, W * 4, T, { isStatic: true }),
+  };
+  Composite.add(engine.world, Object.values(walls));
+  addEventListener('resize', () => {
+    W = box.clientWidth;
+    H = box.clientHeight;
+    Body.setPosition(walls.floor, { x: W / 2, y: H + T / 2 });
+    Body.setPosition(walls.left, { x: -T / 2, y: H / 2 - 2000 });
+    Body.setPosition(walls.right, { x: W + T / 2, y: H / 2 - 2000 });
+    toys.forEach((t) => t.body && Sleeping.set(t.body, false));
+  });
+
+  // grab, carry, throw: Matter's mouse (and finger) constraint; the wheel is left alone
+  const mouse = Mouse.create(box);
+  mouse.pixelRatio = 1;
+  ['wheel', 'mousewheel', 'DOMMouseScroll'].forEach((n) => box.removeEventListener(n, mouse.mousewheel));
+  const grab = MouseConstraint.create(engine, { mouse, constraint: { stiffness: 0.18, damping: 0.08, render: { visible: false } } });
+  Composite.add(engine.world, grab);
+
+  // each toy's body is built from its own outline
+  const build = (t) => {
+    sizeOf(t);
+    const verts = outline(t.img, t.w, t.h);
+    t.off = Vertices.centre(verts);    // where the body's centre sits inside the picture
+    t.body = Bodies.fromVertices(0, 0, [verts], {
+      friction: 0.6,
+      frictionStatic: 0.9,
+      frictionAir: 0.012,
+      restitution: 0.25,
+      density: 0.0016,
+      sleepThreshold: 40,
+    }, true);
+    t.body.plugin.toy = t;
+  };
+
+  // drop them in from above, one after another
+  const drop = async () => {
+    await loaded;
+    toys.forEach((t, i) => {
+      build(t);
+      Body.setPosition(t.body, { x: W * (0.1 + rand() * 0.8), y: -100 - i * 90 });
+      Body.setAngle(t.body, (rand() - 0.5) * 1.2);
+      Body.setVelocity(t.body, { x: (rand() - 0.5) * 4, y: 0 });
+      Composite.add(engine.world, t.body);
+      t.img.style.visibility = '';
     });
   };
-  let prev = 0;
+
+  // a fixed step keeps the stacking steady whatever the screen's frame rate
+  const STEP = 1000 / 60;
+  let acc = 0, prev = 0;
   const tick = (now) => {
     requestAnimationFrame(tick);
-    const dt = Math.min(0.033, prev ? (now - prev) / 1000 : 0.016);
+    if (document.hidden) { prev = now; return; }
+    acc += Math.min(100, prev ? now - prev : STEP);
     prev = now;
-    if (!running || document.hidden) return;
-    step(dt / 2);
-    step(dt / 2);
-    draw();
+    while (acc >= STEP) { Engine.update(engine, STEP); acc -= STEP; }
+    toys.forEach((t) => {
+      const b = t.body;
+      if (!b) return;
+      // the picture's centre is the body's centre minus the turned offset
+      const c = Math.cos(b.angle), s = Math.sin(b.angle);
+      const x = b.position.x - (t.off.x * c - t.off.y * s);
+      const y = b.position.y - (t.off.x * s + t.off.y * c);
+      t.img.style.transform = `translate(${(x - t.w / 2).toFixed(1)}px, ${(y - t.h / 2).toFixed(1)}px) rotate(${b.angle.toFixed(4)}rad)`;
+    });
   };
   requestAnimationFrame(tick);
 
-  // pick up, carry, throw; a quick click without moving opens the work
-  const toyAt = (x, y) => {
-    for (let i = layer.children.length - 1; i >= 0; i--) {
-      const b = bodies.find((o) => o.img === layer.children[i]);
-      if (b?.ready && Math.hypot(x - b.x, y - b.y) < b.r * 0.95) return b;
-    }
-    return null;
-  };
-  let held = null, ox = 0, oy = 0, downX = 0, downY = 0, downT = 0, track = [];
-  box.addEventListener('pointerdown', (e) => {
-    const r = box.getBoundingClientRect();
-    const x = e.clientX - r.left, y = e.clientY - r.top;
-    const b = toyAt(x, y);
-    if (!b) return;
-    e.preventDefault();
-    held = b;
-    b.held = true;
-    b.img.classList.add('is-held');
-    layer.append(b.img);           // the one in hand comes to the front
-    ox = x - b.x; oy = y - b.y;
-    downX = x; downY = y; downT = performance.now();
-    track = [{ x, y, t: downT }];
+  // what the tag says: the work's name over a toy, a cheer while carrying one
+  const bodies = () => toys.map((t) => t.body).filter(Boolean);
+  Events.on(grab, 'startdrag', (e) => {
+    const t = e.body.plugin.toy;
+    cursor.override = 'WHEEE!';
+    if (t) { t.img.classList.add('is-held'); layer.append(t.img); }
   });
-  addEventListener('pointermove', (e) => {
-    const r = box.getBoundingClientRect();
-    const x = e.clientX - r.left, y = e.clientY - r.top;
-    if (held) {
-      const t = performance.now();
-      track.push({ x, y, t });
-      if (track.length > 6) track.shift();
-      const nx = x - ox, ny = y - oy;
-      held.va = (nx - held.x) * 6;    // it swings as you carry it
-      held.x = nx; held.y = ny;
-      held.vx = 0; held.vy = 0;
-      cursor.override = 'WHEEE!';
-      return;
-    }
-    if (!MOUSE) return;
-    const b = toyAt(x, y);
-    cursor.override = b ? `№ ${numberOf(b.p)} ${b.p.title.length > 34 ? `${b.p.title.slice(0, 32)}…` : b.p.title}` : null;
-  }, { passive: true });
-  const release = () => {
-    if (!held) return;
-    const b = held;
-    held = null;
-    b.held = false;
-    b.img.classList.remove('is-held');
+  Events.on(grab, 'enddrag', (e) => {
     cursor.override = null;
-    const last = track[track.length - 1], first = track[0];
-    const dt = Math.max(16, last.t - first.t) / 1000;
-    b.vx = Math.max(-3000, Math.min(3000, (last.x - first.x) / dt));
-    b.vy = Math.max(-3000, Math.min(3000, (last.y - first.y) / dt));
-    const moved = Math.hypot(last.x - downX, last.y - downY);
-    if (moved < 6 && performance.now() - downT < 350) leaveTo(projectUrl(b.p));
-  };
-  addEventListener('pointerup', release);
-  addEventListener('pointercancel', release);
+    e.body.plugin.toy?.img.classList.remove('is-held');
+  });
+  box.addEventListener('pointermove', () => {
+    if (!MOUSE || grab.body) return;
+    const t = Query.point(bodies(), mouse.position)[0]?.plugin.toy;
+    cursor.override = t ? `№ ${numberOf(t.p)} ${t.p.title.length > 34 ? `${t.p.title.slice(0, 32)}…` : t.p.title}` : null;
+  });
+  box.addEventListener('pointerleave', () => { if (!grab.body) cursor.override = null; });
 
   // shake the box: everything jumps
   box.querySelector('#shake').addEventListener('click', () => {
-    bodies.forEach((b) => {
-      b.vy = -(700 + rand() * 900);
-      b.vx = (rand() - 0.5) * 1100;
-      b.va = (rand() - 0.5) * 900;
+    toys.forEach((t) => {
+      if (!t.body) return;
+      Sleeping.set(t.body, false);
+      Body.setVelocity(t.body, { x: (rand() - 0.5) * 22, y: -(12 + rand() * 14) });
+      Body.setAngularVelocity(t.body, (rand() - 0.5) * 0.4);
     });
   });
 
