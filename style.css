@@ -223,6 +223,10 @@ body.is-home { height: 100vh; height: 100svh; overflow: hidden; }
 .box .warning { position: absolute; left: 50%; top: calc(42% + clamp(44px, 8.4vw, 150px)); translate: -50% 0; z-index: 1; pointer-events: none; }
 /* the one way out of the toy box: a yellow sticker that leads to the work, above the toys */
 .box .go-work { z-index: 4; pointer-events: auto; cursor: pointer; transition: rotate .5s var(--spring), scale .5s var(--spring), box-shadow .3s; }
+/* three times the usual sticker (13px → 39px on a computer; held to the screen width on phones),
+   padding, dot and corners grow with it */
+.box .go-work { top: calc(42% + clamp(56px, 9.8vw, 175px)); gap: .77em; padding: .7em 1.08em; border-radius: .62em; font-size: clamp(18px, 2.6vw, 39px); white-space: nowrap; }
+.box .go-work::before { width: .62em; height: .62em; }
 .box .go-work:hover { rotate: 0deg; scale: 1.06; box-shadow: var(--shadow-lg); }
 .box .go-work:active { scale: .97; }
 .toys { position: absolute; inset: 0; z-index: 2; }
