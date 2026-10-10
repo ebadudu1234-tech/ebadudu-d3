@@ -321,6 +321,12 @@ function setupBox(box) {
   });
   box.addEventListener('pointerleave', () => { if (!grab.body) cursor.override = null; });
 
+  // the way out (VIEW ALL MY WORK) and the SHAKE button keep their presses to themselves:
+  // Matter's mouse would otherwise cancel a tap on a phone
+  box.querySelectorAll('#go-work, #shake').forEach((el) => {
+    ['mousedown', 'touchstart'].forEach((n) => el.addEventListener(n, (e) => e.stopPropagation(), { passive: true }));
+  });
+
   // shake the box: everything jumps
   box.querySelector('#shake').addEventListener('click', () => {
     toys.forEach((t) => {

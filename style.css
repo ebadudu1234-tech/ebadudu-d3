@@ -221,6 +221,10 @@ body.is-home { height: 100vh; height: 100svh; overflow: hidden; }
 .wordmark .ch { display: inline-block; animation: bob 3.6s ease-in-out infinite; animation-delay: calc(var(--i) * -.45s); }
 @keyframes bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -.035em; } }
 .box .warning { position: absolute; left: 50%; top: calc(42% + clamp(44px, 8.4vw, 150px)); translate: -50% 0; z-index: 1; pointer-events: none; }
+/* the one way out of the toy box: a yellow sticker that leads to the work, above the toys */
+.box .go-work { z-index: 4; pointer-events: auto; cursor: pointer; transition: rotate .5s var(--spring), scale .5s var(--spring), box-shadow .3s; }
+.box .go-work:hover { rotate: 0deg; scale: 1.06; box-shadow: var(--shadow-lg); }
+.box .go-work:active { scale: .97; }
 .toys { position: absolute; inset: 0; z-index: 2; }
 .toy {
   position: absolute;
