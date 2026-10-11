@@ -80,3 +80,4 @@
 | `8591dce` | 首页黄色 WARNING 贴纸换成 VIEW ALL MY WORK，链接到 WORK 页 |
 | `37aa501` | 首页黄色 VIEW ALL MY WORK 贴纸放大三倍（手机按屏宽缩小），移到大字下方不重叠 |
 | `31afb59` | 新增 tools/skill：Apple Design、Web Design Guidelines、Anti-AI-Slop Writing（stop-slop）三个 skill 的备份（带许可和说明），详见总笔记 |
+| `ab37b88` | 用三个 skill 升级：焦点框、Skip 链接、INDEX 作品名是真链接、筛选写进网址；悬停关键帧改可打断的弹簧、按下会被捏扁、点青蛙会跳；青蛙的话和提示按 stop-slop 改；"减少动态效果"只停漂浮循环，开场和掉落照常。详见 4B |
