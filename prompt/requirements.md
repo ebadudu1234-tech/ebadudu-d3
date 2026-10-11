@@ -66,3 +66,4 @@
 | `99ae05c` | 首页玩具箱：物理改用 Matter.js，碰撞形状按图片外轮廓，静止后不再旋转；首页玩具只能玩，不再点进作品 |
 | `8591dce` | 首页黄色 WARNING 贴纸换成 VIEW ALL MY WORK，链接到 WORK 页 |
 | `37aa501` | 首页黄色 VIEW ALL MY WORK 贴纸放大三倍（手机按屏宽缩小），移到大字下方不重叠 |
+| （本次） | 新增 tools/skill：Apple Design、Web Design Guidelines、Anti-AI-Slop Writing（stop-slop）三个 skill 的备份（带许可和说明），详见总笔记 |
