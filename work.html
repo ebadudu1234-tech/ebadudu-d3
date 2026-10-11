@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="All 20 works by Zihe Wang, from 2023 to 2026, on a shelf or in a list.">
+<meta name="theme-color" content="#f2f1ed">
 <title>Work — EBADUDU</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -10,10 +12,11 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body data-page="work">
+<a class="skip-link" href="#main">Skip to content</a>
 <header class="top" id="top"></header>
 
 <!-- the same works, two ways to look (SHELF / INDEX), filtered by a sentence -->
-<main class="page work">
+<main class="page work" id="main">
   <div class="work-head">
     <h1 class="big">The Shelf</h1>
     <div class="views" id="views" role="group" aria-label="View">
@@ -24,6 +27,7 @@
   <p class="filter" id="filter"></p>
   <div id="shelf-view"></div>
   <div id="index-view" hidden></div>
+  <p class="sr-only" id="filter-status" aria-live="polite"></p>
 </main>
 <!-- INDEX: the hovered row's cover rides next to the cursor -->
 <div class="peek" id="peek" aria-hidden="true"><img alt=""></div>

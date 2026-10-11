@@ -140,9 +140,11 @@ img, video { display: block; max-width: 100%; }
   transition: transform .4s var(--spring);
 }
 .mark:hover { transform: rotate(-4deg); }
-.mark .ch { display: inline-block; }
-.mark:hover .ch { animation: hop-letter .5s var(--spring); animation-delay: calc(var(--i) * 30ms); }
-@keyframes hop-letter { 50% { transform: translateY(-4px); } }
+/* the letters lift one after another on hover: a transition, not a keyframe, so leaving
+   half-way brings them back down from wherever they are */
+.mark .ch { display: inline-block; transition: translate .45s var(--spring); transition-delay: calc(var(--i) * 25ms); }
+.mark:hover .ch { translate: 0 -3px; }
+.mark:active { transform: rotate(-4deg) scale(.94); transition-duration: .1s; }
 .nav {
   display: flex;
   gap: 2px;
@@ -311,7 +313,7 @@ body.is-home { height: 100vh; height: 100svh; overflow: hidden; }
   background: var(--ink);
   color: #fff;
   transform: translateY(-101%);
-  transition: transform .5s cubic-bezier(.7, 0, .2, 1);
+  transition: transform .38s cubic-bezier(.7, 0, .2, 1);
   pointer-events: none;
 }
 .lid.is-shut { transform: none; }
@@ -352,8 +354,10 @@ body.is-home { height: 100vh; height: 100svh; overflow: hidden; }
 }
 .frog.is-in { translate: 0 0; }
 .frog img { pointer-events: auto; cursor: pointer; transform-origin: 50% 100%; filter: drop-shadow(0 10px 14px rgba(14, 14, 14, .16)); }
-.frog img:hover { animation: hop .6s var(--spring); }
-@keyframes hop { 0%, 100% { transform: none; } 40% { transform: translateY(-16px) rotate(-6deg); } 70% { transform: translateY(0) scaleY(.94); } }
+/* hover lifts the frog a little; pressing squashes it; a click makes it hop (main.js) */
+.frog img { transition: transform .45s var(--spring); }
+.frog img:hover { transform: translateY(-6px) rotate(-3deg); }
+.frog img:active { transform: scale(1.04, .92); transition-duration: .1s; }
 .bubble {
   position: absolute;
   left: 76%;
@@ -429,15 +433,12 @@ body.is-home { height: 100vh; height: 100svh; overflow: hidden; }
 }
 .item { position: relative; display: grid; justify-items: center; flex: none; width: clamp(100px, 8.6vw, 136px); padding-top: 18px; }
 .item[hidden] { display: none; }
-.item img { height: clamp(76px, 7.4vw, 112px); width: auto; transform-origin: 50% 100%; filter: drop-shadow(0 8px 10px rgba(14, 14, 14, .14)); }
-.item:hover img { animation: jump .7s var(--spring); }
-@keyframes jump {
-  0% { transform: none; }
-  25% { transform: scale(1.06, .92); }
-  55% { transform: translateY(-22px) scale(.96, 1.05) rotate(-4deg); }
-  80% { transform: scale(1.04, .96); }
-  100% { transform: none; }
-}
+/* the toy hops up when the mouse arrives and settles back when it leaves. A spring transition,
+   not a keyframe: it can be interrupted at any point and always moves from where the toy is.
+   Pressing squashes it at once, the way a real toy gives under a finger */
+.item img { height: clamp(76px, 7.4vw, 112px); width: auto; transform-origin: 50% 100%; filter: drop-shadow(0 8px 10px rgba(14, 14, 14, .14)); transition: transform .55s var(--spring); }
+.item:hover img { transform: translateY(-14px) rotate(-4deg); }
+.item:active img { transform: translateY(-4px) scale(1.06, .9); transition-duration: .12s; }
 /* the caption under each toy */
 .tag {
   position: absolute;
@@ -565,6 +566,59 @@ body.is-home { height: 100vh; height: 100svh; overflow: hidden; }
   .index .tags-col { display: none; }
 }
 
+/* ============ Access & feel (Web Interface Guidelines + Apple design skills) ============ */
+html { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+/* keyboard focus is always visible; mouse clicks don't draw it */
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 6px; }
+.btn:focus-visible, .mark:focus-visible, .nav a:focus-visible { border-radius: 999px; }
+.p-next:focus-visible, .frame:focus-visible { border-radius: var(--radius); outline-offset: 4px; }
+.index .name a:focus-visible { outline-offset: 6px; }
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+/* the first Tab on every page offers a jump past the top bar */
+.skip-link {
+  position: fixed;
+  left: var(--gutter);
+  top: 12px;
+  z-index: 90;
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  translate: 0 -200%;
+  transition: translate .3s var(--settle);
+}
+.skip-link:focus { translate: none; }
+/* the index: the whole row opens the work, the name is the real link (keyboard, Cmd/Ctrl-click) */
+.index .name a { color: inherit; }
+.index tbody tr:active td { background: #ecebe6; }
+.filter button:active { color: var(--ink); opacity: .6; }
+.views .btn:active { transform: scale(.95); }
+/* type: headings break into even lines, paragraphs avoid a lonely last word */
+.big, .about-big, .about-closing, .p-next b { text-wrap: balance; }
+.p-text, .card-sticker p, .p-sub, .about-lead { text-wrap: pretty; }
+.index .no, .index .yr, .specs, .shelf-year { font-variant-numeric: tabular-nums; }
+
+/* reduced motion: the endless floating loops stop (the bobbing letters, toys and dot);
+   the intro, the lid, the falling toys and the hops still play */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation: none !important; transition-duration: .01s !important; }
+  .wordmark .ch, .here::before, .p-cover .corner-toy, .inline-toy { animation: none; }
+}
+/* reduced transparency: the frosted bar turns solid */
+@media (prefers-reduced-transparency: reduce) {
+  .mark, .nav { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
 }

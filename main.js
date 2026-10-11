@@ -3,7 +3,6 @@
    ========================================================= */
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-const STILL = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const MOUSE = matchMedia('(hover: hover) and (pointer: fine)').matches;
 
 /* ---------- the works ---------- */
@@ -59,7 +58,7 @@ function setupLid(lid) {
   const KEY = 'd3-lid';
   let shut = false;
   try { shut = sessionStorage.getItem(KEY) === '1'; sessionStorage.removeItem(KEY); } catch (e) {}
-  if (shut && !STILL) {
+  if (shut) {
     lid.style.transition = 'none';
     lid.classList.add('is-shut');
     lid.offsetWidth;  // apply, then let it open
@@ -78,10 +77,11 @@ function setupLid(lid) {
 }
 function leaveTo(href) {
   const lid = document.getElementById('lid');
-  if (STILL || !lid) { location.href = href; return; }
+  if (!lid) { location.href = href; return; }
   try { sessionStorage.setItem('d3-lid', '1'); } catch (e) {}
   lid.classList.add('is-shut');
-  setTimeout(() => { location.href = href; }, 430);
+  // the lid takes .38s; leave the moment it is shut, not a beat later
+  setTimeout(() => { location.href = href; }, 360);
 }
 
 /* ---------- the name-tag cursor: a yellow tag that says what is under the mouse (Jackie Hu) ---------- */
@@ -99,7 +99,7 @@ function setupTagCursor(el) {
     const t = e.target instanceof Element ? e.target : null;
     const text = cursor.override
       || t?.closest('[data-tag]')?.dataset.tag
-      || (t?.closest('a, button') ? 'CLICK!' : 'ZIHE ✦');
+      || (t?.closest('a') ? 'OPEN' : t?.closest('button') ? 'PRESS' : 'ZIHE ✦');
     if (text !== last) {
       el.textContent = text;
       last = text;
@@ -113,11 +113,21 @@ function setupTagCursor(el) {
 }
 
 /* ---------- the frog: a guide in the corner with a line for each page (Mr. Panda) ---------- */
+// short, in the second person, one idea each (stop-slop); a phone gets its own words for
+// what a mouse would do
 const FROG_LINES = {
-  home: ['Hi! Grab a toy and throw it.', 'Try stacking them up.', 'Too tidy? Shake the box!'],
-  work: ['Pick a word to filter the shelf.', 'Want a list? Try INDEX.', 'Touch a toy, it jumps!'],
-  project: ['Scroll down for the whole story.', 'The next toy is at the bottom.'],
-  about: ['This is Zihe. Say hi!', 'The email is at the bottom.'],
+  home: [
+    MOUSE ? 'Hi! Grab a toy and throw it.' : 'Hi! Drag a toy with your finger and fling it.',
+    'Can you stack three toys so they stand?',
+    'SHAKE THE BOX sends every toy flying.',
+  ],
+  work: [
+    'Pick a word in the sentence to filter the shelf.',
+    'INDEX shows the same works as a list.',
+    MOUSE ? 'Point at a toy and it hops.' : 'Tap a toy to open its work.',
+  ],
+  project: ['The story and the pictures are below.', 'The next toy waits at the bottom.'],
+  about: ['This is Zihe. Say hi!', 'Zihe’s email is at the bottom.'],
 };
 function setupFrog(frog, delay = 900) {
   const lines = FROG_LINES[document.body.dataset.page === 'work' && document.getElementById('project') ? 'project' : document.body.dataset.page] || [];
@@ -132,8 +142,21 @@ function setupFrog(frog, delay = 900) {
     timer = setTimeout(() => frog.classList.remove('is-talking'), 4200);
   };
   setTimeout(() => { frog.classList.add('is-in'); setTimeout(say, 700); }, delay);
-  frog.querySelector('img').addEventListener('click', say);
-  frog.querySelector('img').dataset.tag = 'RIBBIT!';
+  // a click is one discrete event, so a one-shot hop (Web Animations) fits it. It moves the
+  // separate translate/rotate/scale, so it adds to the hover lift; a new click restarts it
+  const img = frog.querySelector('img');
+  let hop = null;
+  img.addEventListener('click', () => {
+    say();
+    hop?.cancel();
+    hop = img.animate([
+      { translate: '0 0' },
+      { translate: '0 -22px', rotate: '-6deg', offset: 0.4, easing: 'cubic-bezier(.2, 0, .3, 1)' },
+      { translate: '0 0', scale: '1.05 .92', offset: 0.75 },
+      { translate: '0 0', scale: '1 1' },
+    ], { duration: 560, easing: 'cubic-bezier(.3, 0, .2, 1)' });
+  });
+  img.dataset.tag = 'RIBBIT!';
 }
 
 /* ============ Home: the toy box ============
@@ -403,8 +426,13 @@ function setupWork() {
   index.innerHTML = `<table class="index">
     <thead><tr><th>№</th><th>WORK</th><th class="tags-col">DISCIPLINES</th><th class="yr">YEAR</th></tr></thead>
     <tbody>${ORDER.map((p) => `<tr data-href="${projectUrl(p)}" data-slug="${p.slug}" data-tags="${esc(p.tags.join('|'))}" data-tag="OPEN →">
-      <td class="no">${numberOf(p)}</td><td class="name">${esc(p.title)}</td><td class="tags-col">${chipsHtml(p.tags)}</td><td class="yr">${p.year}</td></tr>`).join('')}</tbody></table>`;
-  index.querySelectorAll('tbody tr').forEach((tr) => tr.addEventListener('click', () => leaveTo(tr.dataset.href)));
+      <td class="no">${numberOf(p)}</td><td class="name"><a href="${projectUrl(p)}">${esc(p.title)}</a></td><td class="tags-col">${chipsHtml(p.tags)}</td><td class="yr">${p.year}</td></tr>`).join('')}</tbody></table>`;
+  // the name is a real link (Tab, Enter, Cmd/Ctrl-click, middle-click); the rest of the row
+  // is a larger target for the same place
+  index.querySelectorAll('tbody tr').forEach((tr) => tr.addEventListener('click', (e) => {
+    if (e.target instanceof Element && e.target.closest('a')) return;
+    leaveTo(tr.dataset.href);
+  }));
 
   // the hovered row's cover rides beside the cursor
   if (MOUSE) {
@@ -430,12 +458,25 @@ function setupWork() {
     });
     index.querySelectorAll('tbody tr').forEach((tr) => { tr.hidden = !!tag && !tr.dataset.tags.split('|').includes(tag); });
   };
+  // the picked word is kept in the address (work.html?tag=MOTION), so a filtered shelf can be
+  // shared and survives Back; a screen reader hears how many works are left
+  const status = document.getElementById('filter-status');
+  const pick = (tag, announce) => {
+    filter.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.f === tag)));
+    apply(tag);
+    if (!announce) return;
+    const n = index.querySelectorAll('tbody tr:not([hidden])').length;
+    if (status) status.textContent = `${n} ${n === 1 ? 'work' : 'works'}${tag ? `, ${tag.toLowerCase()}` : ''}`;
+    const url = new URL(location.href);
+    if (tag) url.searchParams.set('tag', tag); else url.searchParams.delete('tag');
+    history.replaceState(null, '', url);
+  };
   filter.addEventListener('click', (e) => {
     const b = e.target instanceof Element && e.target.closest('button');
-    if (!b) return;
-    filter.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
-    apply(b.dataset.f);
+    if (b) pick(b.dataset.f, true);
   });
+  const fromUrl = new URLSearchParams(location.search).get('tag');
+  if (fromUrl && tags.includes(fromUrl)) pick(fromUrl, false);
 
   // SHELF / INDEX
   const views = document.getElementById('views');
@@ -462,12 +503,17 @@ function renderProject(root) {
     return;
   }
   document.title = `${p.title} — EBADUDU`;
+  document.querySelector('meta[name="description"]')?.setAttribute('content',
+    `${p.title}: ${(p.subtitle || p.tags.join(', ')).split('|')[0].trim()}, ${p.year}. A project by Zihe Wang (EBADUDU).`);
   const media = mediaOf(p);
   const heroIdx = p.hero || 0;
   const hero = media[heroIdx];
   const hidden = new Set([heroIdx, ...(p.hide || [])]);
-  const clip = (m, extra = '') => `<video src="${m.src}" poster="${m.poster}" muted loop playsinline preload="metadata"${extra}></video>`;
-  const pic = (m) => (m.type === 'video' ? clip(m) : `<img src="${m.src}" width="${m.w}" height="${m.h}" alt="" loading="lazy" decoding="async">`);
+  // gallery pictures are named by their place in the work, so a screen reader can tell them apart
+  const altOf = (m) => `${p.title}, ${m.type === 'video' ? 'film' : 'image'} ${media.indexOf(m) + 1} of ${media.length}`;
+  // films play muted by themselves
+  const clip = (m, extra = '') => `<video src="${m.src}" poster="${m.poster}" muted loop playsinline preload="metadata" aria-label="${esc(altOf(m))}"${extra}></video>`;
+  const pic = (m) => (m.type === 'video' ? clip(m) : `<img src="${m.src}" width="${m.w}" height="${m.h}" alt="${esc(altOf(m))}" loading="lazy" decoding="async">`);
   const next = ORDER[(ORDER.indexOf(p) + 1) % ORDER.length];
   const paras = p.text || [];
 
@@ -478,7 +524,7 @@ function renderProject(root) {
       ${p.subtitle ? `<p class="p-sub">${esc(p.subtitle)}</p>` : ''}
     </header>
     <figure class="p-cover${p.fit === 'contain' ? ' contain' : ''}">
-      <div class="frame">${hero ? (hero.type === 'video' ? clip(hero, ' autoplay') : `<img src="${hero.src}" alt="${esc(p.title)}">`) : ''}</div>
+      <div class="frame">${hero ? (hero.type === 'video' ? clip(hero, ' autoplay') : `<img src="${hero.src}" alt="${esc(p.title)}" fetchpriority="high">`) : ''}</div>
       <img class="corner-toy" src="${toyOf(p)}" alt="">
     </figure>
     <section class="p-story">
@@ -515,7 +561,7 @@ if (box) {
   const intro = document.getElementById('intro');
   let seen = false;
   try { seen = sessionStorage.getItem('d3-intro') === '1'; } catch (e) {}
-  if (intro && !seen && !STILL) {
+  if (intro && !seen) {
     try { sessionStorage.setItem('d3-intro', '1'); } catch (e) {}
     playIntro(intro, () => { drop(); if (frog) setupFrog(frog, 1200); });
   } else {

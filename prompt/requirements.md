@@ -59,6 +59,19 @@
 - **PLAY AREA**：还没有，导航里是灰色（光标显示 COMING SOON）。
 - 每个页面左下角有**青蛙向导**，会说一句提示（点它会换一句、跳一下）。
 
+## 4B. 用三个 skill 升级（2026-10-11）
+
+详见总笔记 D1/prompt/requirements.md 第 4C 节。D3 里具体是：
+- 焦点框、Skip 链接、meta description、图片编号说明；INDEX 表格里作品名是真正的链接（Tab、Cmd/Ctrl 点击都能用），整行仍可点；筛选写进网址并告诉读屏软件还剩几个。
+- 玩具架的玩具、青蛙、EBADUDU 字母：关键帧改弹簧过渡（可打断），按下会被"捏扁"；点青蛙跳一下；盖子 0.38 秒。
+- 青蛙的话（第二人称、一句一个意思，手机上说手指的操作）：
+  - 首页：Hi! Grab a toy and throw it.（手机：Hi! Drag a toy with your finger and fling it.）/ Can you stack three toys so they stand? / SHAKE THE BOX sends every toy flying.
+  - WORK：Pick a word in the sentence to filter the shelf. / INDEX shows the same works as a list. / Point at a toy and it hops.（手机：Tap a toy to open its work.）
+  - 作品页：The story and the pictures are below. / The next toy waits at the bottom.
+  - About：This is Zihe. Say hi! / Zihe’s email is at the bottom.
+- 首页提示 GRAB · THROW · STACK → GRAB A TOY · THROW IT；光标在链接上 OPEN、按钮上 PRESS（原来都是 CLICK!）。
+- "减少动态效果"：以前整站动画全关、开场跳过；现在只停一直漂浮的东西（字母、小玩具、黄点），开场、盖子、掉落、视频照常。
+
 ## 5. 版本记录
 | 版本 | 内容 |
 |---|---|
